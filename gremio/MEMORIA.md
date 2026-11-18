@@ -1,6 +1,6 @@
 # Memoria · Gremio de Aventureros
 
-**Código de alumno/a:** TU_CODIGO
+**Código de alumno/a:** Manuel_Expósito
 
 ## 1. Mi aventurero
 - Usuario que he añadido a la tabla: (Entrega 2)
