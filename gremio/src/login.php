@@ -1,9 +1,7 @@
 <?php
 /**
- * =====================================================================
- *  login.php · Inicio de sesión contra MySQL · PLANTILLA DEL ALUMNO
- * =====================================================================
- *  PARTE 3 · CE 4.e.1 (autenticación) · CE 4.b (sesión) · CE 4.c (cookie)
+ * login.php · Inicio de sesión contra MySQL
+ * PARTE 3 · CE 4.e.1 (autenticación) · CE 4.b (sesión) · CE 4.c (cookie)
  */
 
 declare(strict_types=1);
@@ -20,23 +18,46 @@ if (aventureroActual() !== null) {
 }
 
 $error    = null;
-$usuario  = '';     // TODO: recupéralo de la cookie COOKIE_USUARIO si existe
-$recordar = false;  // TODO: marcado si había usuario recordado
+$recuerdo = $_COOKIE[COOKIE_USUARIO] ?? '';
+$usuario  = is_string($recuerdo) ? substr($recuerdo, 0, 30) : '';
+$recordar = $usuario !== ''; // marcada si había usuario recordado
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // TODO (Parte 3):
-    //  1. Lee usuario (con trim), clave y la casilla "recordar".
-    //  2. Si falta alguno → $error = 'Escribe tu usuario y tu contraseña.'
-    //  3. Llama a autenticar(conectar(), $usuario, $clave) dentro de try/catch
-    //     (PDOException): el detalle técnico a error_log(), al usuario un
-    //     mensaje genérico. NUNCA muestres $ex->getMessage() en pantalla.
-    //  4. Si es correcto:
-    //       session_regenerate_id(true);       ← ¿por qué? (a la memoria)
-    //       guarda el aventurero en $_SESSION['aventurero'],
-    //       inicializa $_SESSION['zurron'] y guarda la hora en $_SESSION['entrada'],
-    //       recordarUsuario() u olvidarUsuario() según la casilla,
-    //       mensajeFlash de bienvenida y redirige a tablon.php.
-    //  5. Si no → $error = 'Usuario o contraseña incorrectos.'
+    $usuario  = trim((string) ($_POST['usuario'] ?? ''));
+    $clave    = (string) ($_POST['clave'] ?? '');
+    $recordar = isset($_POST['recordar']);
+
+    if ($usuario === '' || $clave === '') {
+        $error = 'Escribe tu usuario y tu contraseña.';
+    } else {
+        try {
+            $miembro = autenticar(conectar(), $usuario, $clave);
+
+            if ($miembro !== null) {
+                // Nuevo id de sesión tras el login: evita la fijación de sesión
+                session_regenerate_id(true);
+                $_SESSION['aventurero'] = $miembro;
+                $_SESSION['zurron']     = [];
+                $_SESSION['visitas']    = 0;
+                $_SESSION['entrada']    = date('H:i:s');
+
+                if ($recordar) {
+                    recordarUsuario($usuario);
+                } else {
+                    olvidarUsuario();
+                }
+
+                mensajeFlash('Bienvenido al gremio, ' . $miembro['nombre'] . '.');
+                header('Location: tablon.php');
+                exit;
+            }
+            // Mismo mensaje si falla el usuario o la contraseña
+            $error = 'Usuario o contraseña incorrectos.';
+        } catch (PDOException $ex) {
+            error_log('Gremio · error de base de datos en el login: ' . $ex->getMessage());
+            $error = 'No hemos podido comprobar tus datos. Inténtalo más tarde.';
+        }
+    }
 }
 
 $motivo = match ($_GET['motivo'] ?? '') {

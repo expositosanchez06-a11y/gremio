@@ -1,10 +1,8 @@
 <?php
 /**
- * =====================================================================
- *  preferencias.php · Tema guardado en una cookie · PLANTILLA DEL ALUMNO
- * =====================================================================
- *  PARTE 3 · CE 4.c: almacenar (setcookie) y recuperar ($_COOKIE).
- *  Ojo: $_COOKIE no cambia en la misma petición del setcookie.
+ * preferencias.php · Tema guardado en una cookie
+ * PARTE 3 · CE 4.c: almacenar (setcookie) y recuperar ($_COOKIE).
+ * Ojo: $_COOKIE no cambia en la misma petición del setcookie.
  */
 
 declare(strict_types=1);
@@ -16,9 +14,15 @@ iniciarSesion();
 $aventurero = requiereLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // TODO: valida $_POST['tema'] contra TEMAS (in_array estricto).
-    //  Si es válido → guardarTema() y flash; si no → flash 'Tema no válido.'
-    //  Redirige a preferencias.php.
+    $tema = $_POST['tema'] ?? '';
+    if (is_string($tema) && in_array($tema, TEMAS, true)) {
+        guardarTema($tema);
+        mensajeFlash('Tema «' . $tema . '» guardado.');
+    } else {
+        mensajeFlash('Tema no válido.');
+    }
+    header('Location: preferencias.php');
+    exit;
 }
 
 $temaGuardado = temaActual();
@@ -42,6 +46,8 @@ require __DIR__ . '/inc/cabecera.php';
         </fieldset>
         <button type="submit">Guardar</button>
     </form>
-    <!-- TODO: muestra el valor CRUDO de la cookie COOKIE_TEMA (escapado con e()). -->
+    <?php $crudo = $_COOKIE[COOKIE_TEMA] ?? null; ?>
+    <p class="nota">Valor de la cookie <code><?= e(COOKIE_TEMA) ?></code>:
+        <code><?= e(is_string($crudo) ? $crudo : '(no definida)') ?></code></p>
 </section>
 <?php require __DIR__ . '/inc/pie.php'; ?>

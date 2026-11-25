@@ -1,11 +1,9 @@
 <?php
 /**
- * =====================================================================
- *  tablon.php · Tablón de misiones · PLANTILLA DEL ALUMNO
- * =====================================================================
- *  PARTE 1 (UD3): recorrer el array de misiones y pintar cada tarjeta.
- *  PARTE 2 (UD4): filtro por GET y aceptación por POST.
- *  PARTE 3 (UD5): página solo para miembros; contador de visitas en sesión.
+ * tablon.php · Tablón de misiones
+ * PARTE 1 (UD3): recorrer el array de misiones y pintar cada tarjeta.
+ * PARTE 2 (UD4): filtro por GET y aceptación por POST.
+ * PARTE 3 (UD5): página solo para miembros; contador de visitas en sesión.
  */
 
 declare(strict_types=1);
@@ -18,7 +16,10 @@ $aventurero = requiereLogin();
 $misiones   = require __DIR__ . '/inc/datos_misiones.php';
 $_SESSION['zurron'] ??= [];
 
-// TODO (Parte 3): suma 1 a $_SESSION['visitas'] en cada carga del tablón.
+// Contador de visitas: +1 cada vez que se carga el tablón (no en el POST)
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $_SESSION['visitas'] = ($_SESSION['visitas'] ?? 0) + 1;
+}
 
 // ---- POST: aceptar una misión --------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -49,7 +50,7 @@ $titulo = 'Tablón de misiones';
 require __DIR__ . '/inc/cabecera.php';
 ?>
 <h1>Tablón de misiones</h1>
-<!-- TODO (Parte 3): muestra la hora de entrada y las visitas de esta sesión. -->
+<p class="nota">Entraste a las <?= e((string) ($_SESSION['entrada'] ?? '—')) ?> · Visitas al tablón en esta sesión: <?= e((string) ($_SESSION['visitas'] ?? 0)) ?></p>
 <?php if ($flash !== null): ?><p class="aviso"><?= e($flash) ?></p><?php endif; ?>
 
 <form method="get" action="tablon.php" class="filtros">
